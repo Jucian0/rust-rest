@@ -7,11 +7,11 @@ async fn find_all() -> impl Responder {
    HttpResponse::Ok().json(vec![
       User {
          id: 1,
-         email: "juciano@juciano.com".to_string(),
+         email: "jucian0@jucian0.com".to_string(),
       },
       User {
-         id: 2,
-         email: "julio@julio.com".to_string(),
+         id: 1,
+         email: "jucian0@jucian0.com".to_string(),
       },
    ])
 }
@@ -19,12 +19,12 @@ async fn find_all() -> impl Responder {
 #[get("/users/{id}")]
 async fn find() -> impl Responder {
    HttpResponse::Ok().json(User {
-      id: 2,
-      email: "julio@julio.com".to_string(),
+      id: 1,
+      email: "jucian0@jucian0.com".to_string(),
    })
 }
 
-#[post("/users/{id}")]
+#[post("/users")]
 async fn create(user: web::Json<User>) -> impl Responder {
    HttpResponse::Created().json(user.into_inner())
 }
@@ -36,13 +36,13 @@ async fn update(user: web::Json<User>) -> impl Responder {
 
 #[delete("/users/{id}")]
 async fn delete() -> impl Responder {
-   HttpResponse::Ok().json(json!({"message":"Deleted"}))
+   HttpResponse::Ok().json(json!({"message": "Deleted"}))
 }
 
 pub fn init_routes(cfg: &mut web::ServiceConfig) {
-   cfg.service(find_all);
-   cfg.service(find);
-   cfg.service(create);
-   cfg.service(update);
-   cfg.service(delete);
+   cfg.service(find_all)
+      .service(find)
+      .service(create)
+      .service(update)
+      .service(delete);
 }
