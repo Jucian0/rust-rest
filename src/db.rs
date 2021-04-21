@@ -1,7 +1,7 @@
 use crate::api_error::ApiError;
 use diesel::pg::PgConnection;
 use diesel::r2d2::ConnectionManager;
-use lazy_static::LazyStatic;
+use lazy_static::lazy_static;
 use r2d2;
 use std::env;
 
@@ -20,11 +20,11 @@ lazy_static! {
 
 pub fn init() {
    info!("Initializing DB");
-   lazy_static::initialize((&POOL));
+   lazy_static::initialize(&POOL);
 
    let conn = connection().expect("Failed to get db connection");
 
-   embed_migrations::run(&conn).unwrap();
+   embedded_migrations::run(&conn).unwrap();
 }
 
 pub fn connection() -> Result<DbConnection, ApiError> {
