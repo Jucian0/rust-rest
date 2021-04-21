@@ -4,11 +4,16 @@ services:
     image: postgres:10.3
     restart: always
     environment:
-      - POSTGRES_USER=sammy
-      - POSTGRES_PASSWORD=your_password
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=123456
     volumes:
       - postgres:/var/lib/postgresql/data
     ports:
       - "5432:5432"
-volumes:
-  postgres:
+    volumes:
+      - postgres
+  redis:
+    image: redis
+    command: redis-server --requirepass root_123456!
+    ports:
+      - "6379:6379"        
