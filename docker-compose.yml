@@ -14,6 +14,6 @@ services:
       - postgres
   redis:
     image: redis
-    command: redis-server --requirepass root_123456!
+    command: redis-server
     ports:
       - "6379:6379"        

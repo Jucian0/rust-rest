@@ -1,3 +1,4 @@
+use actix_web::error::Error as ActixError;
 use actix_web::http::StatusCode;
 use actix_web::{HttpResponse, ResponseError};
 use diesel::result::Error as DieselError;
@@ -52,5 +53,11 @@ impl ResponseError for ApiError {
       };
 
       HttpResponse::build(status_code).json(json!({ "message": message }))
+   }
+}
+
+impl From<ActixError> for ApiError {
+   fn from(error: ActixError) -> ApiError {
+      ApiError::new(500, error.to_string())
    }
 }

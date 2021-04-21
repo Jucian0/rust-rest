@@ -5,11 +5,13 @@ extern crate diesel;
 #[macro_use]
 extern crate diesel_migrations;
 
+use actix_redis::RedisSession;
 use actix_web::{get, App, HttpResponse, HttpServer, Responder};
 use dotenv::dotenv;
 use std::env;
 
 mod api_error;
+mod auth;
 mod db;
 mod schema;
 mod user;
@@ -28,8 +30,19 @@ async fn main() -> std::io::Result<()> {
     let host = env::var("HOST").expect("Host not set");
     let port = env::var("PORT").expect("Port not set");
 
-    HttpServer::new(|| App::new().configure(user::init_routes))
-        .bind(format!("{}:{}", host, port))?
-        .run()
-        .await
+    let redis_port = env::var("REDIS_PORT").expect("Redis port not set");
+    let redis_host = env::var("REDIS_HOST").expect("Redis host not set");
+
+    HttpServer::new(move || {
+        App::new()
+            .wrap(RedisSession::new(
+                format!("{}:{}", redis_host, redis_port),
+                &[0; 32],
+            ))
+            .configure(user::init_routes)
+            .configure(auth::init_routes)
+    })
+    .bind(format!("{}:{}", host, port))?
+    .run()
+    .await
 }
