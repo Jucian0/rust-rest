@@ -6,20 +6,17 @@ extern crate diesel;
 extern crate diesel_migrations;
 
 use actix_redis::RedisSession;
-use actix_web::{get, App, HttpResponse, HttpServer, Responder};
+use actix_web::{App, HttpServer};
 use dotenv::dotenv;
 use std::env;
 
 mod api_error;
 mod auth;
 mod db;
+mod email;
+mod email_verification_token;
 mod schema;
 mod user;
-
-#[get("/")]
-async fn index() -> impl Responder {
-    HttpResponse::Ok().body("Hello world!")
-}
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
