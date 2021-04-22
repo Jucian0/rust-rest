@@ -70,7 +70,7 @@ async fn invite(body: web::Json<EmailVerificationTokenMessage>) -> Result<HttpRe
    let token = EmailVerificationToken::create(body.clone())?;
    let token_string = hex::encode(token.id);
 
-   Email::new(Contact::new("tore@cloudmaker.dev", "Cloudmaker"))
+   Email::new(Contact::new("juciano@outlook.com.br", "Jucian0"))
       .add_recipient(body.email)
       .set_subject("Confirm your email")
       .set_html(format!("Your confirmation code is: {}", &token_string))
