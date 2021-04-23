@@ -26,9 +26,25 @@ pub struct User {
    pub updated_at: Option<NaiveDateTime>,
 }
 
+#[derive(Debug, Deserialize)]
+pub struct Params {
+   pub email: Option<String>,
+   pub sort_by: Option<String>,
+   #[serde(rename = "created_at[gte]")]
+   pub created_at_gte: Option<NaiveDateTime>,
+   #[serde(rename = "created_at[gte]")]
+   pub created_at_lte: Option<NaiveDateTime>,
+   #[serde(rename = "updated_at[gte]")]
+   pub updated_at_gte: Option<NaiveDateTime>,
+   #[serde(rename = "updated_at[gte]")]
+   pub updated_at_lte: Option<NaiveDateTime>,
+}
+
 impl User {
-   pub fn find_all() -> Result<Vec<Self>, ApiError> {
+   pub fn find_all(params: Params) -> Result<Vec<Self>, ApiError> {
       let conn = db::connection()?;
+
+      let mut query = user::table.into_boxed();
 
       let users = user::table.load::<User>(&conn)?;
 
