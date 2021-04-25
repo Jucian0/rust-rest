@@ -46,7 +46,41 @@ impl User {
 
       let mut query = user::table.into_boxed();
 
-      let users = user::table.load::<User>(&conn)?;
+      if let Some(email) = params.email {
+         query = query.filter(user::email.like(email));
+      }
+      if let Some(create_at_gte) = params.created_at_gte {
+         query = query.filter(user::created_at.ge(create_at_gte));
+      }
+      if let Some(create_at_lte) = params.created_at_lte {
+         query = query.filter(user::created_at.le(create_at_lte));
+      }
+      if let Some(updated_at_gte) = params.updated_at_gte {
+         query = query.filter(user::updated_at.ge(updated_at_gte));
+      }
+      if let Some(updated_at_lte) = params.updated_at_lte {
+         query = query.filter(user::updated_at.ge(updated_at_lte));
+      }
+
+      if let Some(sort_by) = params.sort_by {
+         query = match sort_by.as_ref() {
+            "id" => query.order(user::id.asc()),
+            "id.asc" => query.order(user::id.asc()),
+            "id.desc" => query.order(user::id.desc()),
+            "email" => query.order(user::email.asc()),
+            "email.asc" => query.order(user::email.asc()),
+            "email.desc" => query.order(user::email.desc()),
+            "created_at" => query.order(user::created_at.asc()),
+            "created_at.asc" => query.order(user::created_at.asc()),
+            "created_at.desc" => query.order(user::created_at.desc()),
+            "updated_at" => query.order(user::updated_at.asc()),
+            "updated_at.asc" => query.order(user::updated_at.asc()),
+            "updated_at.desc" => query.order(user::updated_at.desc()),
+            _ => query,
+         }
+      }
+
+      let users = query.load::<User>(&conn)?;
 
       Ok(users)
    }
