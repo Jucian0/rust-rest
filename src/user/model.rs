@@ -8,6 +8,7 @@ use rand::Rng;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 use crate::db::LoadPaginated;
+use crate::{sort_by, filter};
 
 
 #[derive(Serialize, Deserialize, AsChangeset)]
@@ -50,39 +51,20 @@ impl User {
 
       let mut query = user::table.into_boxed();
 
-      if let Some(email) = params.email {
-         query = query.filter(user::email.like(email));
-      }
-      if let Some(create_at_gte) = params.created_at_gte {
-         query = query.filter(user::created_at.ge(create_at_gte));
-      }
-      if let Some(create_at_lte) = params.created_at_lte {
-         query = query.filter(user::created_at.le(create_at_lte));
-      }
-      if let Some(updated_at_gte) = params.updated_at_gte {
-         query = query.filter(user::updated_at.ge(updated_at_gte));
-      }
-      if let Some(updated_at_lte) = params.updated_at_lte {
-         query = query.filter(user::updated_at.ge(updated_at_lte));
-      }
+      query = filter!(query,
+         (user::email, @like, params.email),
+         (user::created_at, @ge, params.created_at_gte),
+         (user::created_at, @le, params.created_at_lte),
+         (user::updated_at, @ge, params.updated_at_gte),
+         (user::updated_at, @le, params.updated_at_lte)
+     );
 
-      if let Some(sort_by) = params.sort_by {
-         query = match sort_by.as_ref() {
-            "id" => query.order(user::id.asc()),
-            "id.asc" => query.order(user::id.asc()),
-            "id.desc" => query.order(user::id.desc()),
-            "email" => query.order(user::email.asc()),
-            "email.asc" => query.order(user::email.asc()),
-            "email.desc" => query.order(user::email.desc()),
-            "created_at" => query.order(user::created_at.asc()),
-            "created_at.asc" => query.order(user::created_at.asc()),
-            "created_at.desc" => query.order(user::created_at.desc()),
-            "updated_at" => query.order(user::updated_at.asc()),
-            "updated_at.asc" => query.order(user::updated_at.asc()),
-            "updated_at.desc" => query.order(user::updated_at.desc()),
-            _ => query,
-         }
-      }
+      query = sort_by!(query, params.sort_by,
+         ("id", user::id),
+         ("email",user::email),
+         ("created_at", user::created_at),
+         ("updated_at", user::updated_at)
+      );
 
       let (users, total_pages, total) = query
       .load_with_pagination(&conn, params.page, params.page_size)?;
