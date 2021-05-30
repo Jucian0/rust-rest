@@ -12,6 +12,21 @@
             "<node_internals>/**"
          ],
          "program": "${file}"
-      }
+      },
+      {
+         "type": "lldb",
+         "request": "launch",
+         "name": "Launch",
+         "args": [],
+         "program": "${workspaceFolder}/target/debug/rest-api",
+         "windows": {
+           "program": "${workspaceFolder}/target/debug/rest-api.d"
+         },
+         "cwd": "${workspaceFolder}",
+         "stopOnEntry": false,
+         "sourceLanguages": [
+           "rust"
+         ]
+       }
    ]
 }
