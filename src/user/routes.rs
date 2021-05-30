@@ -8,12 +8,12 @@ use serde_json::json;
 use uuid::Uuid;
 
 #[get("/users")]
-async fn find_all(params: web::Query<Params>, session:Session) -> Result<HttpResponse, ApiError> {
+async fn find_all(filters: web::Query<Params>, session:Session) -> Result<HttpResponse, ApiError> {
    let id: Option<Uuid> = session.get("user_id")?;
 
    if let Some(id) = id {      
-      let users = User::find_all(params.into_inner())?;
-      Ok(HttpResponse::Ok().json(users))
+      let (users, total_pages,total) = User::find_all(filters.into_inner())?;
+      Ok(HttpResponse::Ok().json(json!({"users":users,"total_pages":total_pages, "total":total })))
    } else {
       Err(ApiError::new(401, "Unauthorized".to_string()))
    }

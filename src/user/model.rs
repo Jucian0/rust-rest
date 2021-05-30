@@ -7,6 +7,8 @@ use diesel::prelude::*;
 use rand::Rng;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
+use crate::db::LoadPaginated;
+
 
 #[derive(Serialize, Deserialize, AsChangeset)]
 #[table_name = "user"]
@@ -38,10 +40,12 @@ pub struct Params {
    pub updated_at_gte: Option<NaiveDateTime>,
    #[serde(rename = "updated_at[gte]")]
    pub updated_at_lte: Option<NaiveDateTime>,
+   pub page:Option<i64>,
+   pub page_size:Option<i64>
 }
 
 impl User {
-   pub fn find_all(params: Params) -> Result<Vec<Self>, ApiError> {
+   pub fn find_all(params: Params) -> Result<(Vec<Self>,i64,i64), ApiError> {
       let conn = db::connection()?;
 
       let mut query = user::table.into_boxed();
@@ -80,9 +84,10 @@ impl User {
          }
       }
 
-      let users = query.load::<User>(&conn)?;
+      let (users, total_pages, total) = query
+      .load_with_pagination(&conn, params.page, params.page_size)?;
 
-      Ok(users)
+      Ok((users, total_pages, total))
    }
 
    pub fn find(id: Uuid) -> Result<Self, ApiError> {
