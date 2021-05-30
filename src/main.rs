@@ -20,12 +20,16 @@ mod email_verification_token;
 mod schema;
 mod user;
 mod api_info;
+mod cache;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     dotenv().ok();
     env_logger::init();
     info!("Starting server");
+
+    db::init();
+    cache::init();
 
     let host = env::var("HOST").expect("Host not set");
     let port = env::var("PORT").expect("Port not set");

@@ -5,6 +5,7 @@ use diesel::result::Error as DieselError;
 use serde::Deserialize;
 use serde_json::json;
 use std::fmt;
+use redis::RedisError;
 
 #[derive(Debug, Deserialize)]
 pub struct ApiError {
@@ -59,5 +60,11 @@ impl ResponseError for ApiError {
 impl From<ActixError> for ApiError {
    fn from(error: ActixError) -> ApiError {
       ApiError::new(500, error.to_string())
+   }
+}
+
+impl From<RedisError> for ApiError{
+   fn from(error:RedisError)->ApiError{
+      ApiError::new(500, format!("Redis, error: {}", error))
    }
 }

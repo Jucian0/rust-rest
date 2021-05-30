@@ -9,6 +9,8 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 use crate::db::LoadPaginated;
 use crate::{sort_by, filter};
+use crate::cache;
+use redis::Commands;
 
 
 #[derive(Serialize, Deserialize, AsChangeset)]
@@ -73,9 +75,14 @@ impl User {
    }
 
    pub fn find(id: Uuid) -> Result<Self, ApiError> {
+      if let Some(user) = User::cache_find(id)?{
+         return Ok(user);
+      }
       let conn = db::connection()?;
 
-      let user = user::table.filter(user::id.eq(id)).first(&conn)?;
+      let user = user::table.filter(user::id.eq(id)).first::<User>(&conn)?;
+
+      user.cache_set()?;
 
       Ok(user)
    }
@@ -98,8 +105,9 @@ impl User {
       let user = diesel::update(user::table)
          .filter(user::id.eq(id))
          .set(user)
-         .get_result(&conn)?;
+         .get_result::<User>(&conn)?;
 
+      user.cache_set()?;   
       Ok(user)
    }
 
@@ -107,6 +115,8 @@ impl User {
       let conn = db::connection()?;
 
       let res = diesel::delete(user::table.filter(user::id.eq(id))).execute(&conn)?;
+
+      User::cache_delete(id)?;
 
       Ok(res)
    }
@@ -132,6 +142,32 @@ impl User {
       let user = user::table.filter(user::email.eq(email)).first(&conn)?;
 
       Ok(user)
+   }
+
+   fn cache_find(id:Uuid)->Result<Option<Self>, ApiError>{
+      let cache_key = format!("user.{}", id);
+      let mut  cache = cache::connection()?;
+      let res:Vec<u8> = cache.get(&cache_key)?;
+      match serde_json::from_slice::<User>(&res).ok(){
+         Some(user)=>Ok(Some(user)),
+         None => Ok(None)
+      }
+   }
+
+   fn cache_set(&self)->Result<(), ApiError>{
+      let cache_key = format!("user.{}", self.id);
+      let mut  cache = cache::connection()?;
+      if let Some(cache_user) = serde_json::to_vec(self).ok(){
+         let _:() = cache.set_ex(&cache_key, cache_user, 3600)?;
+      }
+      Ok(())
+   }
+
+   fn cache_delete(id:Uuid)->Result<(), ApiError>{
+      let cache_key = format!("user.{}", id);
+      let mut cache = cache::connection()?;
+      let _:() = cache.del(cache_key)?;
+      Ok(())
    }
 }
 
