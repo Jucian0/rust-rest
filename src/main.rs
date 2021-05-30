@@ -5,11 +5,10 @@ extern crate diesel;
 #[macro_use]
 extern crate diesel_migrations;
 
-use actix_web::Responder;
-use actix_web::HttpRequest;
+
+use crate::api_info::index;
 use actix_redis::RedisSession;
-use actix_web::{App, HttpServer, web, HttpResponse};
-use serde::{Deserialize, Serialize};
+use actix_web::{App, HttpServer, web};
 use dotenv::dotenv;
 use std::env;
 
@@ -20,17 +19,7 @@ mod email;
 mod email_verification_token;
 mod schema;
 mod user;
-
-#[derive(Serialize, Deserialize)]
-pub struct ApiDescription {
-    pub apiName: String,
-    pub version: String
-}
-
-async fn index(req: HttpRequest)->impl Responder{
-    HttpResponse::Ok().json(ApiDescription{apiName:"Api Rust Rest".to_string(), version:"1.0".to_string()})
-}
-
+mod api_info;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
