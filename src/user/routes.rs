@@ -1,3 +1,4 @@
+use actix_session::Session;
 use crate::api_error::ApiError;
 use crate::user::model::UserMessage;
 use crate::user::Params;
@@ -7,10 +8,17 @@ use serde_json::json;
 use uuid::Uuid;
 
 #[get("/users")]
-async fn find_all(params: web::Query<Params>) -> Result<HttpResponse, ApiError> {
-   let users = User::find_all(params.into_inner())?;
-   Ok(HttpResponse::Ok().json(users))
+async fn find_all(params: web::Query<Params>, session:Session) -> Result<HttpResponse, ApiError> {
+   let id: Option<Uuid> = session.get("user_id")?;
+
+   if let Some(id) = id {      
+      let users = User::find_all(params.into_inner())?;
+      Ok(HttpResponse::Ok().json(users))
+   } else {
+      Err(ApiError::new(401, "Unauthorized".to_string()))
+   }
 }
+
 
 #[get("/users/{id}")]
 async fn find(id: web::Path<Uuid>) -> Result<HttpResponse, ApiError> {
